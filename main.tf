@@ -4,6 +4,12 @@ provider "aws" {
 
 variable "database_password" {}
 
+data "aws_caller_identity" "current" {}
+
+data "aws_region" "current" {
+  current = true
+}
+
 resource "aws_vpc" "cognoma-vpc" {
   cidr_block = "172.31.0.0/16"
   enable_dns_support = true
@@ -96,9 +102,9 @@ resource "aws_key_pair" "cognoma" {
 }
 
 resource "aws_instance" "cognoma-service-1" {
-  ami = "ami-275ffe31"
-  instance_type = "r4.large"
+  ami = "ami-5e414e24"
   availability_zone = "us-east-1a"
+  instance_type = "r4.large"
   vpc_security_group_ids = ["${aws_security_group.cognoma-service.id}"]
   iam_instance_profile = "${aws_iam_instance_profile.ecs-instance-profile.name}"
   subnet_id = "${aws_subnet.cognoma-1a.id}"
@@ -112,9 +118,9 @@ resource "aws_instance" "cognoma-service-1" {
 }
 
 resource "aws_instance" "cognoma-service-2" {
-  ami = "ami-275ffe31"
-  instance_type = "r4.large"
+  ami = "ami-5e414e24"
   availability_zone = "us-east-1b"
+  instance_type = "r4.large"
   vpc_security_group_ids = ["${aws_security_group.cognoma-service.id}"]
   iam_instance_profile = "${aws_iam_instance_profile.ecs-instance-profile.name}"
   subnet_id = "${aws_subnet.cognoma-1b.id}"

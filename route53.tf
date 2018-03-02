@@ -7,7 +7,7 @@ variable "cognoma-domain" {
 }
 
 data "aws_route53_zone" "cognoma" {
-  zone_id = "Z2GDAYII3P3OEX"
+  zone_id = "Z1D5X4ZSR5R6N1"
 }
 
 resource "aws_ses_domain_identity" "cognoma" {
@@ -41,7 +41,9 @@ resource "aws_route53_record" "cognoma-dot-org" {
 
 resource "aws_route53_record" "cognoma-ses-verification-record" {
   zone_id = "${data.aws_route53_zone.cognoma.zone_id}"
-  name = "${var.cognoma-domain}"
+  # This name was what AWS SES said it needed to be when I clicked the
+  # retry button in the AWS console.
+  name = "_amazonses.${var.cognoma-domain}"
   type = "TXT"
   ttl = "5"
   records = ["${aws_ses_domain_identity.cognoma.verification_token}"]

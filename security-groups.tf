@@ -26,10 +26,39 @@ resource "aws_security_group_rule" "cognoma-service-custom" {
   security_group_id = "${aws_security_group.cognoma-service.id}"
 }
 
+# The ELB needs to be able to make outbound http requests to the
+# intances for health checks
+resource "aws_security_group_rule" "cognoma-service-elb-outbound" {
+  type = "egress"
+  from_port = 8000
+  to_port = 8000
+  protocol = "tcp"
+  self = true
+  security_group_id = "${aws_security_group.cognoma-service.id}"
+}
+
 resource "aws_security_group_rule" "cognoma-service-ssh" {
   type = "ingress"
   from_port = 22
   to_port = 22
+  protocol = "tcp"
+  cidr_blocks = ["0.0.0.0/0"]
+  security_group_id = "${aws_security_group.cognoma-service.id}"
+}
+
+resource "aws_security_group_rule" "cognoma-service-outbound-http" {
+  type = "egress"
+  from_port = 80
+  to_port = 80
+  protocol = "tcp"
+  cidr_blocks = ["0.0.0.0/0"]
+  security_group_id = "${aws_security_group.cognoma-service.id}"
+}
+
+resource "aws_security_group_rule" "cognoma-service-outbound-https" {
+  type = "egress"
+  from_port = 443
+  to_port = 443
   protocol = "tcp"
   cidr_blocks = ["0.0.0.0/0"]
   security_group_id = "${aws_security_group.cognoma-service.id}"
@@ -74,13 +103,24 @@ resource "aws_security_group" "cognoma-db" {
   }
 }
 
-resource "aws_security_group_rule" "cognoma-db-postgres-self" {
+# Allow RDS instance to accept inbound postgres connections from cognoma service instances
+resource "aws_security_group_rule" "cognoma-db-from-instance" {
   type = "ingress"
   from_port = 5432
   to_port = 5432
   protocol = "tcp"
   source_security_group_id = "${aws_security_group.cognoma-service.id}"
   security_group_id = "${aws_security_group.cognoma-db.id}"
+}
+
+# Allow the cognoma service instances to make outbound postgres connections to RDS instance
+resource "aws_security_group_rule" "cognoma-instance-to-db" {
+  type = "egress"
+  from_port = 5432
+  to_port = 5432
+  protocol = "tcp"
+  source_security_group_id = "${aws_security_group.cognoma-db.id}"
+  security_group_id = "${aws_security_group.cognoma-service.id}"
 }
 
 resource "aws_security_group_rule" "cognoma-db-outbound" {
